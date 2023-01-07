@@ -60,9 +60,9 @@ class Mutations():
         random_num = self.rng.uniform(0, 1)
         if mutate_param == 'train_frames_fraction':
             if random_num > 0.5:
-                setattr(rl_config, mutate_param, min(0.1, max(3.0, getattr(rl_config, mutate_param) * 1.2)))
+                setattr(rl_config, mutate_param, min(3.0, max(0.1, getattr(rl_config, mutate_param) * 1.2)))
             else:
-                setattr(rl_config, mutate_param, min(0.1, max(3.0, getattr(rl_config, mutate_param) * 0.8)))
+                setattr(rl_config, mutate_param, min(3.0, max(0.1, getattr(rl_config, mutate_param) * 0.8)))
         elif mutate_param == 'batch_size':
             if random_num > 0.5:
                 setattr(rl_config, mutate_param, min(128, max(8, int(getattr(rl_config, mutate_param) * 1.2))))

@@ -1,6 +1,6 @@
 import copy
 
-import gym
+import gymnasium as gym
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -27,7 +27,7 @@ class TD3(object):
         self.cfg.set_attr("state_dim", self.env.observation_space.shape[0])
 
         # Set seeds
-        self.env.seed(seed=self.cfg.seed.env)
+        self.env.reset(seed=self.cfg.seed.env)
         torch.manual_seed(self.cfg.seed.torch)
         np.random.seed(self.cfg.seed.numpy)
 
@@ -63,7 +63,7 @@ class TD3(object):
         episode_reward_list = []
         for _ in range(eval_episodes):
 
-            state = self.env.reset()
+            state = self.env.reset()[0]
             t_state = to_tensor(state).unsqueeze(0)
             done = False
             episode_reward = 0
@@ -78,7 +78,8 @@ class TD3(object):
                 step_action *= (self.env.action_space.high - self.env.action_space.low)
                 step_action += self.env.action_space.low
 
-                next_state, reward, done, info = self.env.step(step_action)  # Simulate one step in environment
+                next_state, reward, terminated, truncated, info = self.env.step(step_action)  # Simulate one step in environment
+                done = terminated or truncated
                 t_state = to_tensor(next_state).unsqueeze(0)
                 episode_reward += reward
 
@@ -126,7 +127,7 @@ class TD3(object):
                         self.ckp.save_object(self.critic_1.state_dict(), name="critic_1_state_dict")
 
                 # Reset environment
-                state = self.env.reset()
+                state = self.env.reset()[0]
                 t_state = to_tensor(state).unsqueeze(0)
                 done = False
                 episode_reward = 0
@@ -150,7 +151,8 @@ class TD3(object):
             step_action *= (self.env.action_space.high - self.env.action_space.low)
             step_action += self.env.action_space.low
 
-            next_state, reward, done, info = self.env.step(step_action)  # Simulate one step in environment
+            next_state, reward, terminated, truncated, info = self.env.step(step_action)  # Simulate one step in environment
+            done = terminated or truncated
 
             done_bool = 0 if episode_timesteps + 1 == self.env._max_episode_steps else float(done)
 

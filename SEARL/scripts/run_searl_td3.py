@@ -24,8 +24,6 @@ if __name__ == "__main__":
     else:
         expt_dir = args.expt_dir
 
-    os.environ["LD_LIBRARY_PATH"] = f"$LD_LIBRARY_PATH:{str(Path.home())}/.mujoco/mujoco200/bin:/usr/lib/nvidia-384"
-
     with open(config_file, 'r') as f:
         config_dict = yaml.load(f, Loader=yaml.Loader)
 

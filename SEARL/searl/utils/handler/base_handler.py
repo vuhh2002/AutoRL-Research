@@ -12,11 +12,10 @@ class Handler():
         return datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S.%f')[:-4]
 
     def save_mkdir(self, dir):
-        while not os.path.isdir(dir):
-            try:
-                os.mkdir(dir)
-            except FileExistsError:
-                pass
+        try:
+            os.makedirs(dir, exist_ok=True)
+        except:
+            pass
 
     def counting_name(self, dir, file_name, suffix=False):
         dir = pathlib.Path(dir)

@@ -1,7 +1,7 @@
 from collections import ChainMap
 from typing import List
 
-import gym
+import gymnasium as gym
 import numpy as np
 import torch
 
@@ -23,6 +23,9 @@ class MPEvaluation():
         self.eval_episodes = config.eval.eval_episodes
 
     def test_individual(self, individual, epoch):
+        if self.cfg.eval.test_episodes <= 0:
+            return 'Unknown'
+
         return_dict = self._evaluate_individual(individual, self.cfg, self.cfg.eval.test_episodes, epoch, False)
         fitness = np.mean(return_dict[individual.index]["fitness_list"])
         return fitness
@@ -38,14 +41,14 @@ class MPEvaluation():
         episodes = 0
 
         env = gym.make(config.env.name)
-        env.seed(seed)
+        env.reset(seed=seed)
         actor_net.eval()
 
         with torch.no_grad():
             while episodes < num_episodes or num_frames < config.eval.min_eval_steps:
                 episode_fitness = 0.0
                 episode_transitions = []
-                state = env.reset()
+                state = env.reset()[0]
                 t_state = to_tensor(state).unsqueeze(0)
                 done = False
                 while not done:
@@ -65,7 +68,8 @@ class MPEvaluation():
                     step_action *= (env.action_space.high - env.action_space.low)
                     step_action += env.action_space.low
 
-                    next_state, reward, done, info = env.step(step_action)  # Simulate one step in environment
+                    next_state, reward, terminated, truncated, info = env.step(step_action)  # Simulate one step in environment
+                    done = terminated or truncated
 
                     done_bool = 0 if num_frames + 1 == env._max_episode_steps else float(done)
 

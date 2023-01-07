@@ -37,7 +37,7 @@ class MPEvaluation():
         env = make_atari(config.env.name)
         env = wrap_deepmind(env)
         env = wrap_pytorch(env)
-        env.seed(seed)
+        env.reset(seed=seed)
 
         actor_net.eval()
         actor_net.to(device)
@@ -47,13 +47,14 @@ class MPEvaluation():
             while episodes < num_episodes or num_frames < config.eval.min_eval_steps:
                 episode_fitness = 0.0
                 episode_transitions = []
-                state = env.reset()
+                state = env.reset()[0]
 
                 done = False
                 while not done:
                     action = actor_net.act(state)
 
-                    next_state, reward, done, info = env.step(action)
+                    next_state, reward, terminated, truncated, info = env.step(action)
+                    done = terminated or truncated
                     episode_fitness += reward
                     num_frames += 1
 

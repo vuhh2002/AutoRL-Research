@@ -1,9 +1,9 @@
 from collections import deque
 
 import cv2
-import gym
+import gymnasium as gym
 import numpy as np
-from gym import spaces
+from gymnasium import spaces
 
 cv2.ocl.setUseOpenCL(False)
 
@@ -25,7 +25,7 @@ class NoopResetEnv(gym.Wrapper):
         if self.override_num_noops is not None:
             noops = self.override_num_noops
         else:
-            noops = self.unwrapped.np_random.randint(1, self.noop_max + 1)  # pylint: disable=E1101
+            noops = np.random.randint(1, self.noop_max + 1)  # pylint: disable=E1101
         assert noops > 0
         obs = None
         for _ in range(noops):
@@ -105,7 +105,7 @@ class MaxAndSkipEnv(gym.Wrapper):
         self._skip = skip
 
     def reset(self):
-        return self.env.reset()
+        return self.env.reset()[0]
 
     def step(self, action):
         """Repeat action, sum reward, and max over last observations."""
@@ -167,7 +167,7 @@ class FrameStack(gym.Wrapper):
         self.observation_space = spaces.Box(low=0, high=255, shape=(shp[0], shp[1], shp[2] * k), dtype=np.uint8)
 
     def reset(self):
-        ob = self.env.reset()
+        ob = self.env.reset()[0]
         for _ in range(self.k):
             self.frames.append(ob)
         return self._get_ob()

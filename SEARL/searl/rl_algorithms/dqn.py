@@ -28,7 +28,7 @@ class DQN(object):
         self.cfg.set_attr("state_dim", self.env.observation_space.shape)
 
         # Set seeds
-        self.env.seed(seed=self.cfg.seed.env)
+        self.env.reset(seed=self.cfg.seed.env)
         torch.manual_seed(self.cfg.seed.torch)
         np.random.seed(self.cfg.seed.numpy)
 
@@ -55,12 +55,13 @@ class DQN(object):
     def evaluate_policy(self, eval_episodes):
         episode_reward_list = []
         for _ in range(eval_episodes):
-            state = self.env.reset()
+            state = self.env.reset()[0]
             done = False
             episode_reward = 0
             while not done:
                 action = self.actor.act(state)
-                next_state, reward, done, info = self.env.step(action)  # Simulate one step in environment
+                next_state, reward, terminated, truncated, info = self.env.step(action)  # Simulate one step in environment
+                done = terminated or truncated
                 state = next_state
                 episode_reward += reward
 
@@ -109,7 +110,7 @@ class DQN(object):
                         self.ckp.save_object(self.actor.state_dict(), name="actor_state_dict")
 
                 # Reset environment
-                state = self.env.reset()
+                state = self.env.reset()[0]
                 episode_reward = 0
                 episode_timesteps = 0
                 episode_num += 1
@@ -120,7 +121,8 @@ class DQN(object):
             else:
                 action = self.actor.act(state)
 
-            next_state, reward, done, info = self.env.step(action)  # Simulate one step in environment
+            next_state, reward, terminated, truncated, info = self.env.step(action)  # Simulate one step in environment
+            done = terminated or truncated
 
             transition = Transition(torch.FloatTensor(state), torch.LongTensor([action]),
                                     torch.FloatTensor(next_state), torch.FloatTensor(np.array([reward])),

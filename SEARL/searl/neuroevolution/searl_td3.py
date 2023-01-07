@@ -1,10 +1,11 @@
 import copy
 import time
 
-import gym
+import gymnasium as gym
 import numpy as np
 import torch
 import torch.multiprocessing as mp
+from tqdm import tqdm
 
 from searl.neuroevolution.components.individual_td3 import Individual
 from searl.neuroevolution.components.replay_memory import MPReplayMemory, ReplayMemory
@@ -102,6 +103,7 @@ class SEARLforTD3():
         num_frames = num_frames
         epoch = epoch
         ctx = mp.get_context('spawn')
+        self.progress_bar = tqdm(total=self.cfg.train.num_frames, unit="steps")
 
         while True:
             pool = ctx.Pool(processes=self.cfg.nevo.worker, maxtasksperchild=1000)
@@ -131,6 +133,7 @@ class SEARLforTD3():
                 self.ckp.save_object([rm_dict], name="replay_memory")
                 self.log("save replay memory")
 
+            self.progress_bar.update(eval_frames)
             if num_frames >= self.cfg.train.num_frames:
                 break
 
@@ -158,10 +161,11 @@ class SEARLforTD3():
             pool.join()
 
         self.log("FINISH", time_step=num_frames)
-        self.replay_memory.close()
+        self.close()
 
     def close(self):
         self.replay_memory.close()
+        self.progress_bar.close()
 
 
 def start_searl_td3_run(config, expt_dir):
